@@ -34,6 +34,19 @@ def register(request):
         form = RegisterForm()
     return render(request, 'register.html', {'form': form})
 
+def search_products(request):
+    query = request.GET.get('query', '')
+    if query:
+        products = Product.objects.filter(name__icontains=query)
+        categories = Category.objects.filter(name__icontains=query)
+        products_by_category = Product.objects.filter(category__in=categories)
+        final_products = products | products_by_category  # Union of both querysets
+    else:
+        final_products = Product.objects.none()  # Return an empty queryset
+
+    return render(request, 'search_results.html', {'products': final_products, 'query': query})
+    
+
 def productlist(request,categoryId=None): 
     if categoryId: 
         products=Product.objects.filter(categoryId=categoryId)  
@@ -99,18 +112,9 @@ def view_cart(request):
     # Retrieve the user's cart based on the user ID
     user_cart = Cart.objects.get(user=request.user)
     items = user_cart.prod.all()  # Assuming the Cart model has a related field 'items'
+    return render(request, 'cart.html', {'items': items}) 
 
-    return render(request, 'cart.html', {'items': items})
 
 
+
     
-            
-            
-            
-        
-        
-    
-    
-       
-    
-# Create your views here.
